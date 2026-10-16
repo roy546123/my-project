@@ -1,11 +1,12 @@
 """Create the actual ZIP offered to nondeveloper Windows users."""
 from pathlib import Path
+import shutil
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-output = ROOT / 'releases/Moa-Windows.zip'
+output = ROOT / 'releases/Moa-Windows-v1.1.zip'
 output.parent.mkdir(exist_ok=True)
-files = [ROOT / name for name in ['모아 시작.bat', '처음 읽어주세요.txt', 'requirements.txt']]
+files = [ROOT / name for name in ['모아 시작.bat', '모아 종료.bat', '모아 연결 확인.bat', '처음 읽어주세요.txt', 'requirements.txt']]
 files += [ROOT / 'scripts' / name for name in ['windows-start.ps1', 'desktop.py']]
 files += sorted((ROOT / 'backend').glob('*.py'))
 files += sorted(p for p in (ROOT / 'desktop').rglob('*') if p.is_file())
@@ -18,3 +19,4 @@ with zipfile.ZipFile(output) as archive:
     assert 'Moa/모아 시작.bat' in archive.namelist()
     assert not any('/.data/' in name or name.endswith('.sqlite3') for name in archive.namelist())
 print(f'Windows download: {output.relative_to(ROOT)} ({output.stat().st_size / 1048576:.1f} MB), no user data')
+shutil.copyfile(output, ROOT / 'releases/Moa-Windows.zip')

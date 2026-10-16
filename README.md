@@ -6,12 +6,14 @@
 
 **명령어를 입력하지 않아도 됩니다.**
 
-1. [Windows용 ZIP 내려받기](https://github.com/roy546123/my-project/raw/refs/heads/codex/moa-invest-app-20261016/releases/Moa-Windows.zip)를 누릅니다. GitHub 로그인이 필요할 수 있습니다. 저장소의 `releases` 폴더에도 `Moa-Windows.zip` 파일이 있습니다.
+1. [Windows용 ZIP v1.1 내려받기](https://github.com/roy546123/my-project/raw/refs/heads/codex/moa-invest-app-20261016/releases/Moa-Windows-v1.1.zip)를 누릅니다. GitHub 로그인이 필요할 수 있습니다. 저장소의 `releases` 폴더에도 ZIP 파일이 있습니다.
 2. 내려받은 ZIP을 마우스 오른쪽 버튼으로 누르고 **모두 압축 풀기**를 선택합니다.
 3. 압축을 푼 폴더 안의 **`모아 시작.bat`**을 더블클릭합니다. 처음에는 구성요소를 준비하므로 인터넷 연결이 필요하고 몇 분이 걸릴 수 있습니다.
 4. 자동으로 열린 모아에서 **데이터 가져오기**를 눌러 기존 투자관리 엑셀을 가져옵니다.
 
-다음부터는 같은 파일만 더블클릭하면 됩니다. 사용하는 동안 검은 실행 창을 열어 두세요. 종료하려면 그 창을 닫습니다. 자세한 안내는 [처음 읽어주세요.txt](./처음%20읽어주세요.txt)에 있습니다.
+다음부터는 같은 파일만 더블클릭하면 됩니다. v1.1부터는 서버와 화면 파일의 실제 응답을 확인한 뒤 브라우저를 열며, 준비 창이 닫혀도 서버가 계속 실행됩니다. 종료는 **`모아 종료.bat`**, 연결 오류 확인은 **`모아 연결 확인.bat`**을 사용합니다. 자세한 안내는 [처음 읽어주세요.txt](./처음%20읽어주세요.txt)에 있습니다.
+
+업데이트할 때는 이전 실행 창과 브라우저 탭을 닫고 새 ZIP을 **새 폴더**에 모두 압축 풀기 해 주세요. 자산 데이터는 같은 사용자 데이터 폴더에 유지됩니다. 진단 파일 `connection-check.txt`에는 자산 금액·종목명을 포함하지 않습니다. 백그라운드 서버의 종료는 실행할 때 생성한 로컬 세션 키로만 허용하며 다른 프로세스를 강제 종료하지 않습니다.
 
 Windows 10/11 64비트용입니다. 화면과 OCR 파일을 포함하므로 Node.js·Tesseract를 설치할 필요가 없습니다. 호환되는 Python이 없으면 공식 python.org의 설치 파일을 SHA256와 Windows 서명으로 검증한 뒤 사용자 계정에 설치합니다. 전용 구성요소와 데이터는 `%LOCALAPPDATA%\MoaInvest`에 저장합니다. 원본 엑셀이나 자산 DB는 다운로드에 포함하지 않으며 최초 한 번 가져와야 합니다.
 
@@ -103,4 +105,4 @@ npm run test:e2e
 
 개발 중에는 한 터미널에서 `.venv/bin/python -m uvicorn backend.app:app --reload --port 8000`, 다른 터미널에서 `npm run dev`를 실행합니다. Vite의 `/api` 프록시가 서버에 연결됩니다. 각 클라우드 작업은 이미 격리되어 있으므로 기존 체크아웃을 그대로 사용하며 별도 Git worktree를 만들 필요가 없습니다.
 
-화면을 수정한 뒤 Windows 다운로드를 갱신할 때는 `npm run build:desktop`과 `python scripts/package_windows.py`를 실행하고 `desktop/`과 `releases/Moa-Windows.zip`도 커밋합니다. 사용자 DB를 포함하지 않고 화면·OCR·검증용 해시 목록·실행 파일만 생성합니다. OCR은 Tesseract 명령이 있으면 서버에서 처리하고, 없으면 동봉한 Tesseract.js로 브라우저에서 처리합니다.
+화면을 수정한 뒤 Windows 다운로드를 갱신할 때는 `npm run build:desktop`과 `python scripts/package_windows.py`를 실행하고 `desktop/`과 `releases/`의 ZIP도 커밋합니다. 사용자 DB를 포함하지 않고 화면·OCR·검증용 해시 목록·실행 파일만 생성합니다. OCR은 Tesseract 명령이 있으면 서버에서 처리하고, 없으면 동봉한 Tesseract.js로 브라우저에서 처리합니다.

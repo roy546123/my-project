@@ -1807,6 +1807,12 @@ function ImportPage({ data, perform, busy, notify }) {
         setImage(URL.createObjectURL(file));
         let result;
         if (data.ocr_engine === "browser") {
+          const health = await api("/health");
+          if (health.application !== "moa-invest") {
+            throw new Error(
+              "모아 서버에 연결되지 않았습니다. 모아 시작.bat으로 다시 열어 주세요.",
+            );
+          }
           const { recognizeImage } = await import("./browserOcr");
           const text = await recognizeImage(file);
           result = await post("/ocr/parse", { text });
@@ -1828,7 +1834,13 @@ function ImportPage({ data, perform, busy, notify }) {
         );
       }
     } catch (e) {
-      notify(e.message);
+      notify(
+        /dynamically imported module|Importing a module script|module script failed/i.test(
+          e.message,
+        )
+          ? "스크린샷 인식 파일을 읽지 못했습니다. 기존 탭을 닫고 모아 시작.bat으로 다시 열어 주세요. 계속되면 모아 연결 확인.bat을 실행해 주세요."
+          : e.message,
+      );
     } finally {
       setWorking(false);
     }

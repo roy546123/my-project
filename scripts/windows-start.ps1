@@ -1,4 +1,5 @@
-﻿$ErrorActionPreference = 'Stop'
+﻿param([ValidateSet('start','stop','diagnose')][string]$Action = 'start')
+$ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
 $Root = Split-Path -Parent $PSScriptRoot
@@ -16,6 +17,18 @@ function Test-Python([string]$Path) {
 
 try {
     Set-Location -LiteralPath $Root
+    if ($Action -ne 'start') {
+        $ExistingPython = Join-Path $HomeDir 'venv\Scripts\python.exe'
+        if (-not (Test-Python $ExistingPython)) { throw '모아 실행 환경이 아직 준비되지 않았습니다. 시작 기록을 확인해 주세요.' }
+        $env:INVEST_DATA_DIR = Join-Path $HomeDir 'data'
+        $env:INVEST_WEB_DIR = Join-Path $Root 'desktop\web'
+        $env:PYTHONUTF8 = '1'
+        if ($Action -eq 'stop') { & $ExistingPython (Join-Path $Root 'scripts\desktop.py') --stop }
+        else { & $ExistingPython (Join-Path $Root 'scripts\desktop.py') --diagnose }
+        if ($LASTEXITCODE -ne 0) { throw '진단 또는 종료 중 오류가 발생했습니다. 위 내용을 확인해 주세요.' }
+        Stop-Transcript | Out-Null
+        exit 0
+    }
     Write-Host ''
     Write-Host '모아를 준비하고 있습니다. 처음 실행할 때만 몇 분이 걸립니다.' -ForegroundColor Green
     if (-not [Environment]::Is64BitOperatingSystem) { throw '64비트 Windows 10/11에서 실행해 주세요.' }
@@ -81,11 +94,11 @@ try {
         if ($LASTEXITCODE -ne 0) { throw '구성요소 다운로드에 실패했습니다. 인터넷 연결과 이 창의 메시지를 확인해 주세요.' }
         Set-Content -LiteralPath $Marker -Value $Hash -Encoding ASCII
     }
-    Write-Host '[3/3] 브라우저 열기' -ForegroundColor Green
+    Write-Host '[3/3] 서버 연결 확인 후 브라우저 열기' -ForegroundColor Green
     $env:INVEST_DATA_DIR = Join-Path $HomeDir 'data'
     $env:INVEST_WEB_DIR = Join-Path $Root 'desktop\web'
     $env:PYTHONUTF8 = '1'
-    & $AppPython (Join-Path $Root 'scripts\desktop.py')
+    & $AppPython (Join-Path $Root 'scripts\desktop.py') --background
     if ($LASTEXITCODE -ne 0) { throw '모아를 시작하지 못했습니다. 위 오류 메시지를 알려주세요.' }
 } catch {
     Write-Host ''

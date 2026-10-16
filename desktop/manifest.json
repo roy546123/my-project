@@ -1,8 +1,8 @@
 {
-  "index.html": "d764a0b5ea2335c09098e13c6d953741cba14ddb6f0608992b4d985cb3582939",
-  "assets/index-DgDohac6.js": "e9421b015dd12e2fb104a952bb30882c45587bba44ecbe0d01dceacd857882df",
-  "assets/browserOcr-DlWsPPVp.js": "b28e94319de5b91ab13269c8d9d8286d4320195c4f1083bdb3747ece3cedb86c",
+  "index.html": "0ff21b0c09d7c2e43706dadcb21c31db92af79600ad431b267fe582aae3cd445",
   "assets/index-8lm79OFZ.css": "12461f9696be040daebba7e50c547afaebe276f76aa235906541e7abb5a36c85",
+  "assets/browserOcr-CtOPOP8C.js": "0e39e48d387a6a7ae4ad63f02ebc5b2ca6a49306c6fccce9364a22e8a3ae13ae",
+  "assets/index-Db5QygSE.js": "9aec5e870b91b8ca1769e867709d1de1142ef6212a1000ab8b01d18b093a9a48",
   "ocr/TESSERACT-JS-LICENSE.txt": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
   "ocr/worker.min.js.LICENSE.txt": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac",
   "ocr/tesseract-core-relaxedsimd-lstm.wasm.js": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3",

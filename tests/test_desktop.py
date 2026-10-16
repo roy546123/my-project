@@ -67,3 +67,60 @@ class DesktopTests(unittest.TestCase):
             finally:
                 second.terminate()
                 second.wait(timeout=10)
+
+    def test_background_survives_starter_exit_diagnoses_and_stops_with_key(self):
+        with tempfile.TemporaryDirectory(prefix='moa-background-') as tmp:
+            data = Path(tmp) / 'data'
+            env = {**os.environ, 'INVEST_DATA_DIR': str(data), 'INVEST_WEB_DIR': str(ROOT / 'desktop/web')}
+            command = [sys.executable, str(ROOT / 'scripts/desktop.py')]
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+            def run(*args):
+                return subprocess.run(command + list(args), env=env, capture_output=True, timeout=30)
+
+            try:
+                start = run('--background', '--no-browser', '--port', '0')
+                self.assertEqual(start.returncode, 0, start.stderr)
+                status = json.loads((data / 'running.json').read_text())
+                url = f"http://127.0.0.1:{status['port']}"
+                with opener.open(url + '/api/health') as response:
+                    self.assertEqual(json.load(response)['application'], 'moa-invest')
+                repeated = run('--background', '--no-browser', '--port', '0')
+                self.assertEqual(repeated.returncode, 0, repeated.stderr)
+                self.assertEqual(json.loads((data / 'running.json').read_text())['pid'], status['pid'])
+                req = urllib.request.Request(url + '/api/desktop/stop', method='POST', headers={'X-Moa-Desktop-Token':'wrong'})
+                with self.assertRaises(urllib.error.HTTPError) as caught:
+                    opener.open(req)
+                self.assertEqual(caught.exception.code, 403)
+                holding = dict(broker='test', account='test', name='PRIVATE_ASSET_DO_NOT_LOG', ticker='TEST', cost=987654321, value=987654320)
+                request = urllib.request.Request(url + '/api/holdings', data=json.dumps(holding).encode(), headers={'Content-Type':'application/json'})
+                with opener.open(request) as response:
+                    self.assertEqual(response.status, 200)
+                diagnostic = run('--diagnose')
+                self.assertEqual(diagnostic.returncode, 0, diagnostic.stderr)
+                report = (data.parent / 'logs/connection-check.txt').read_text(encoding='utf-8-sig')
+                self.assertIn('서버 및 화면 파일 연결: 정상', report)
+                self.assertNotIn('PRIVATE_ASSET_DO_NOT_LOG', report)
+                self.assertNotIn('987654321', report)
+                self.assertNotIn(status['token'], report)
+                stopped = run('--stop')
+                self.assertEqual(stopped.returncode, 0, stopped.stderr)
+                with self.assertRaises(OSError):
+                    opener.open(url + '/api/health', timeout=1)
+                self.assertTrue((data / 'portfolio.sqlite3').is_file())
+            finally:
+                run('--stop')
+
+    def test_missing_ocr_module_is_reported_before_a_server_is_started(self):
+        import shutil
+        with tempfile.TemporaryDirectory(prefix='moa-missing-') as tmp:
+            folder = Path(tmp)
+            shutil.copytree(ROOT / 'desktop', folder / 'desktop')
+            manifest = json.loads((folder / 'desktop/manifest.json').read_text())
+            module = next(name for name in manifest if name.startswith('assets/browserOcr-'))
+            (folder / 'desktop/web' / module).unlink()
+            env = {**os.environ, 'INVEST_DATA_DIR': str(folder / 'data'), 'INVEST_WEB_DIR': str(folder / 'desktop/web')}
+            result = subprocess.run([sys.executable, str(ROOT / 'scripts/desktop.py'), '--background', '--no-browser'], env=env, capture_output=True, text=True, timeout=10)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(module, result.stderr)
+            self.assertFalse((folder / 'data/running.json').exists())

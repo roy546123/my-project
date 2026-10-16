@@ -3,6 +3,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 import json
+import mimetypes
 import os
 import secrets
 import shutil
@@ -10,7 +11,7 @@ import sqlite3
 import time
 from zoneinfo import ZoneInfo
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
@@ -26,6 +27,9 @@ DATA.mkdir(parents=True, exist_ok=True)
 DB = DATA / "portfolio.sqlite3"
 WEB = Path(os.environ.get("INVEST_WEB_DIR", ROOT / "dist"))
 PREVIEWS = {}
+# Windows registry entries can otherwise assign text/plain to .js files.
+for suffix, content_type in {'.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.wasm': 'application/wasm'}.items():
+    mimetypes.add_type(content_type, suffix)
 app = FastAPI(title="모아 · 투자 기록", docs_url="/api/docs")
 
 
@@ -183,7 +187,24 @@ def state():
 @app.get('/api/health')
 def health():
     import hashlib
-    return {'application': 'moa-invest', 'profile': hashlib.sha256(str(DATA.resolve()).encode()).hexdigest()[:16]}
+    result = {'application': 'moa-invest', 'profile': hashlib.sha256(str(DATA.resolve()).encode()).hexdigest()[:16]}
+    if getattr(app.state, 'desktop_bundle', None):
+        result['bundle'] = app.state.desktop_bundle
+    return result
+
+
+@app.post('/api/desktop/stop')
+async def stop_desktop(request: Request):
+    expected = getattr(app.state, 'desktop_stop_token', None)
+    stop = getattr(app.state, 'desktop_stop', None)
+    if not expected or not stop:
+        raise HTTPException(404, '종료할 데스크톱 서버가 없습니다.')
+    supplied = request.headers.get('X-Moa-Desktop-Token', '')
+    if not secrets.compare_digest(supplied.encode(), expected.encode()):
+        raise HTTPException(403, '이 실행 세션의 종료 권한이 없습니다.')
+    import asyncio
+    asyncio.get_running_loop().call_later(.2, stop)
+    return {'ok': True}
 
 
 @app.post("/api/holdings")
