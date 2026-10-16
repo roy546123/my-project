@@ -1,0 +1,45 @@
+{
+  "name": "moa-invest",
+  "version": "1.0.0",
+  "description": "개인 투자 기록과 DCA 자산 관리",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "bash scripts/start.sh",
+    "test": "python -m unittest discover -s tests -v",
+    "test:e2e": "playwright test",
+    "format": "prettier --write src index.html vite.config.js playwright.config.js tests/browser"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roy546123/my-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/roy546123/my-project/issues"
+  },
+  "homepage": "https://github.com/roy546123/my-project#readme",
+  "private": true,
+  "dependencies": {
+    "lucide-react": "^1.58.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@vitejs/plugin-react": "^6.1.2",
+    "prettier": "^3.9.10",
+    "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
