@@ -141,3 +141,56 @@ im.save(sys.stdout.buffer,format='PNG')
   expect(trade.amount).toBe(25000);
   expect(trade.plan_id).toBeTruthy();
 });
+
+test("Windows browser OCR works with bundled files and no external OCR request", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60000);
+  const { execFileSync } = await import("node:child_process");
+  await request.post("/api/holdings", {
+    data: {
+      broker: "토스증권",
+      account: "해외계좌",
+      name: "SSO",
+      ticker: "SSO",
+      cost: 0,
+      value: 0,
+    },
+  });
+  await page.route("**/api/state", async (route) => {
+    const response = await route.fetch();
+    const state = await response.json();
+    await route.fulfill({ json: { ...state, ocr_engine: "browser" } });
+  });
+  const external = [];
+  page.context().on("request", (r) => {
+    if (r.url().startsWith("http") && new URL(r.url()).hostname !== "127.0.0.1")
+      external.push(r.url());
+  });
+  const png = execFileSync("python", [
+    "-c",
+    `
+from PIL import Image,ImageDraw,ImageFont
+import sys
+im=Image.new('RGB',(900,450),'white');d=ImageDraw.Draw(im);f=ImageFont.load_default(size=34)
+for i,line in enumerate(['Order confirmation','SSO','Total KRW 15,000','0.2 shares']):d.text((50,50+i*85),line,fill='black',font=f)
+im.save(sys.stdout.buffer,format='PNG')
+`,
+  ]);
+  await page.goto("/");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "데이터 가져오기" })
+    .click();
+  await page.getByRole("button", { name: "스크린샷 인식" }).click();
+  await page
+    .getByLabel("스크린샷 파일 선택")
+    .setInputFiles({ name: "SSO.png", mimeType: "image/png", buffer: png });
+  await expect(
+    page.getByRole("heading", { name: "인식 결과를 확인해 주세요" }),
+  ).toBeVisible({ timeout: 50000 });
+  await expect(page.getByLabel("총 체결금액 (원)")).toHaveValue("15000");
+  await expect(page.getByLabel("체결 수량 (선택)")).toHaveValue("0.2");
+  expect(external).toEqual([]);
+});

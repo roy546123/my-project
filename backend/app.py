@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import os
 import secrets
+import shutil
 import sqlite3
 import time
 from zoneinfo import ZoneInfo
@@ -17,12 +18,13 @@ from pydantic import BaseModel, Field
 import openpyxl
 
 from .excel import parse_workbook
-from .ocr import recognize
+from .ocr import recognize, parse_text
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get("INVEST_DATA_DIR", ROOT / ".data"))
 DATA.mkdir(parents=True, exist_ok=True)
 DB = DATA / "portfolio.sqlite3"
+WEB = Path(os.environ.get("INVEST_WEB_DIR", ROOT / "dist"))
 PREVIEWS = {}
 app = FastAPI(title="모아 · 투자 기록", docs_url="/api/docs")
 
@@ -174,7 +176,14 @@ def state():
         s["market_change"] = s["value"] - previous["value"] - (s["cost"] - previous["cost"]) if previous else None
         s["market_rate"] = s["market_change"] / previous["value"] if previous and previous["value"] else None
         previous = s
-    return dict(holdings=holdings, plans=plans, trades=trades, snapshots=snaps, meta=meta, today=today())
+    return dict(holdings=holdings, plans=plans, trades=trades, snapshots=snaps, meta=meta, today=today(),
+                ocr_engine='server' if shutil.which('tesseract') else 'browser')
+
+
+@app.get('/api/health')
+def health():
+    import hashlib
+    return {'application': 'moa-invest', 'profile': hashlib.sha256(str(DATA.resolve()).encode()).hexdigest()[:16]}
 
 
 @app.post("/api/holdings")
@@ -324,6 +333,15 @@ async def ocr(file: UploadFile = File(...)):
         raise HTTPException(422, "이미지 인식이 완료되지 않았습니다. 더 작은 이미지로 다시 시도해 주세요.")
 
 
+class OcrText(BaseModel):
+    text: str = Field(min_length=1, max_length=80000)
+
+
+@app.post('/api/ocr/parse')
+def parse_browser_ocr(data: OcrText):
+    return {'text': data.text, 'candidates': parse_text(data.text)}
+
+
 @app.get("/api/export.xlsx")
 def export_excel():
     data = state()
@@ -385,5 +403,5 @@ async def local_api_guard(request, call_next):
     return response
 
 
-if (ROOT / "dist").exists():
-    app.mount("/",StaticFiles(directory=ROOT / "dist",html=True),name="frontend")
+if WEB.exists():
+    app.mount("/",StaticFiles(directory=WEB,html=True),name="frontend")

@@ -26,7 +26,7 @@ export async function api(path, options = {}) {
   }
   if (!res.headers.get("content-type")?.includes("application/json")) {
     throw new Error(
-      "데이터 서버의 주소가 올바르지 않거나 연결되지 않았습니다. npm start로 실행한 서버 주소에 접속해 주세요.",
+      "데이터 서버의 주소가 올바르지 않거나 연결되지 않았습니다. 실행 창이 열려 있는지 확인하고 프로그램을 다시 시작해 주세요.",
     );
   }
   let json;

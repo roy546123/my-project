@@ -54,7 +54,7 @@
           if (!detail) return;
           detail.textContent =
             location.protocol === "file:"
-              ? "이 파일은 직접 열 수 없습니다. 프로그램 폴더에서 npm start로 서버를 실행한 뒤 서버 주소로 접속해 주세요."
+              ? "이 파일은 직접 열 수 없습니다. 압축을 푼 폴더에서 '모아 시작.bat'을 더블클릭해 프로그램을 실행해 주세요."
               : "화면 파일을 불러오지 못했습니다. 연결을 확인하고 다시 불러와 주세요. 계속되면 현재 접속 주소를 알려주세요.";
           document.getElementById("startup-retry").hidden = false;
         };

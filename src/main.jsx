@@ -1805,7 +1805,14 @@ function ImportPage({ data, perform, busy, notify }) {
         );
       } else {
         setImage(URL.createObjectURL(file));
-        const result = await api("/ocr", { method: "POST", body: form });
+        let result;
+        if (data.ocr_engine === "browser") {
+          const { recognizeImage } = await import("./browserOcr");
+          const text = await recognizeImage(file);
+          result = await post("/ocr/parse", { text });
+        } else {
+          result = await api("/ocr", { method: "POST", body: form });
+        }
         setRecognition(result);
         setRows(
           result.candidates.map((c) => ({
@@ -1874,7 +1881,7 @@ function ImportPage({ data, perform, busy, notify }) {
             <p>
               {tab === "excel"
                 ? "‘보유종목(입력)’과 ‘일별 수익률’ 시트를 읽고, 매일 적립 메모에서 DCA 계획을 가져옵니다."
-                : "이미지는 이 서버의 OCR로만 처리합니다. 외부 AI 서비스로 전송하지 않아요."}
+                : "이미지는 내 컴퓨터의 OCR로 처리합니다. 외부 AI 서비스로 전송하지 않아요."}
             </p>
           </div>
           <Badge>{tab === "excel" ? ".xlsx" : "PNG · JPG · WEBP"}</Badge>

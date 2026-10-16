@@ -1,0 +1,3 @@
+Tesseract.js and Tesseract.js-core are distributed under Apache-2.0.
+Language models: tesseract-ocr/tessdata_fast 4.1.0, Apache-2.0.
+https://github.com/tesseract-ocr/tessdata_fast/tree/4.1.0

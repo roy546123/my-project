@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#143e35" />
+    <meta
+      name="description"
+      content="모아 — 나의 투자를 차곡차곡, 자산과 매일의 DCA 기록을 한곳에서."
+    />
+    <title>모아 · 나의 투자 기록</title>
+    <script type="module" crossorigin src="./assets/index-DgDohac6.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-8lm79OFZ.css">
+  </head>
+  <body>
+    <div id="root">
+      <section
+        id="startup-message"
+        role="status"
+        style="
+          max-width: 520px;
+          margin: 16vh auto;
+          padding: 28px;
+          font-family: system-ui, sans-serif;
+          color: #263c34;
+          line-height: 1.9;
+        "
+      >
+        <h1 style="font-size: 26px; margin: 0 0 16px">모아 · 나의 투자 기록</h1>
+        <p id="startup-detail">
+          화면을 불러오고 있습니다. 잠시만 기다려 주세요.
+        </p>
+        <button
+          id="startup-retry"
+          type="button"
+          hidden
+          style="
+            padding: 10px 18px;
+            background: #245e4d;
+            color: #fff;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+          "
+        >
+          다시 불러오기
+        </button>
+        <noscript>자바스크립트를 허용해야 앱을 사용할 수 있습니다.</noscript>
+      </section>
+    </div>
+    <script>
+      // Keep a readable screen even when the application bundle cannot load.
+      (() => {
+        const showFailure = () => {
+          const detail = document.getElementById("startup-detail");
+          if (!detail) return;
+          detail.textContent =
+            location.protocol === "file:"
+              ? "이 파일은 직접 열 수 없습니다. 압축을 푼 폴더에서 '모아 시작.bat'을 더블클릭해 프로그램을 실행해 주세요."
+              : "화면 파일을 불러오지 못했습니다. 연결을 확인하고 다시 불러와 주세요. 계속되면 현재 접속 주소를 알려주세요.";
+          document.getElementById("startup-retry").hidden = false;
+        };
+        document
+          .getElementById("startup-retry")
+          .addEventListener("click", () => location.reload());
+        window.addEventListener("error", showFailure, true);
+        window.addEventListener("unhandledrejection", showFailure);
+        setTimeout(showFailure, 15000);
+        if (location.protocol === "file:") showFailure();
+      })();
+    </script>
+  </body>
+</html>
